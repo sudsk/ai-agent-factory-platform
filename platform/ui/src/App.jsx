@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -17,16 +17,16 @@ import IntakeRequests from './pages/IntakeRequests';
 import Monitoring from './pages/Monitoring';
 import Settings from './pages/Settings';
 
-// Theme
+// Theme with MUI v7 features
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#028090', // Teal Trust
+      main: '#028090',
       light: '#02C39A',
       dark: '#00A896',
     },
     secondary: {
-      main: '#1E2761', // Navy
+      main: '#1E2761',
     },
     background: {
       default: '#F5F5F5',
@@ -63,7 +63,7 @@ const theme = createTheme({
 });
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleDrawerToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -81,7 +81,7 @@ function App() {
               flexGrow: 1,
               minHeight: '100vh',
               backgroundColor: 'background.default',
-              transition: theme.transitions.create(['margin', 'width'], {
+              transition: theme => theme.transitions.create(['margin', 'width'], {
                 easing: theme.transitions.easing.sharp,
                 duration: theme.transitions.duration.leavingScreen,
               }),

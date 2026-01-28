@@ -1,9 +1,8 @@
-import React from 'react';
+import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
   IconButton,
-  Typography,
   Box,
   Avatar,
   Menu,
@@ -12,11 +11,10 @@ import {
 import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
-  AccountCircle as AccountCircleIcon,
 } from '@mui/icons-material';
 
 function TopBar({ onMenuClick }) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -48,16 +46,11 @@ function TopBar({ onMenuClick }) {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* Notifications */}
         <IconButton color="inherit" sx={{ mr: 1 }}>
           <NotificationsIcon />
         </IconButton>
 
-        {/* User Menu */}
-        <IconButton
-          onClick={handleMenu}
-          color="inherit"
-        >
+        <IconButton onClick={handleMenu} color="inherit">
           <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
             U
           </Avatar>

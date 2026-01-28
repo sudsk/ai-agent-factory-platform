@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL - should be configured via environment variables
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+// Vite uses import.meta.env instead of process.env
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -31,7 +31,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
       localStorage.removeItem('auth_token');
       window.location.href = '/login';
     }
@@ -113,8 +112,7 @@ export const submitIntakeRequest = async (requestData) => {
 
 export const getIntakeRequests = async (filters = {}) => {
   try {
-    // This would fetch from a requests collection in Firestore
-    // For now, return mock data
+    // Mock data for now
     return {
       requests: [
         {
@@ -146,8 +144,6 @@ export const getIntakeRequests = async (filters = {}) => {
 // Monitoring APIs
 export const getMetrics = async (agentName = null, timeRange = '24h') => {
   try {
-    // This would query Cloud Monitoring
-    // For now, return mock data
     return {
       total_invocations: 12547,
       avg_latency: 245,
@@ -173,8 +169,6 @@ export const getAgentHealth = async (agentName) => {
 
 export const getAgentLogs = async (agentName, limit = 100) => {
   try {
-    // This would query Cloud Logging
-    // For now, return mock data
     return {
       logs: [
         {

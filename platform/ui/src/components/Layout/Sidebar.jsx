@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Drawer,
@@ -35,7 +34,7 @@ const bottomMenuItems = [
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
-function Sidebar({ open, onToggle }) {
+function Sidebar({ open }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -59,7 +58,6 @@ function Sidebar({ open, onToggle }) {
         },
       }}
     >
-      {/* Logo/Header */}
       <Box
         sx={{
           p: 2,
@@ -80,7 +78,6 @@ function Sidebar({ open, onToggle }) {
         </Box>
       </Box>
 
-      {/* Main Menu */}
       <List sx={{ px: 1, py: 2 }}>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
@@ -115,7 +112,6 @@ function Sidebar({ open, onToggle }) {
         ))}
       </List>
 
-      {/* Bottom Menu */}
       <Box sx={{ flexGrow: 1 }} />
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
       <List sx={{ px: 1, py: 2 }}>
@@ -149,7 +145,6 @@ function Sidebar({ open, onToggle }) {
         ))}
       </List>
 
-      {/* Version Info */}
       <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
           Version 1.0.0
