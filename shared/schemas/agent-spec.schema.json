@@ -1,0 +1,304 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Configuration Schema",
+  "description": "Schema for agent.yaml configuration files",
+  "type": "object",
+  "required": ["metadata", "deployment", "capabilities"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["name", "version", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Agent name (lowercase, alphanumeric, hyphens only)"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version (e.g., 1.0.0)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 500,
+          "description": "Agent description"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Team or individual owner"
+        },
+        "contact": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Searchable tags"
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "required": ["target"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["cloud-run", "gke", "agent-engine", "agentspace"],
+          "description": "Deployment target"
+        },
+        "cloud_run": {
+          "type": "object",
+          "properties": {
+            "region": {
+              "type": "string",
+              "default": "us-central1"
+            },
+            "cpu": {
+              "type": ["string", "number"],
+              "default": 2
+            },
+            "memory": {
+              "type": "string",
+              "default": "4Gi"
+            },
+            "min_instances": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "max_instances": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10
+            },
+            "timeout": {
+              "type": "string",
+              "pattern": "^\\d+s$",
+              "default": "60s"
+            },
+            "concurrency": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 80
+            }
+          }
+        },
+        "gke": {
+          "type": "object",
+          "properties": {
+            "cluster": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string",
+              "default": "default"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 3
+            },
+            "autoscaling": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "min_replicas": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "max_replicas": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "cpu_threshold": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              }
+            }
+          }
+        },
+        "agent_engine": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string",
+              "default": "gemini-2.0-flash-exp"
+            },
+            "reasoning_engine": {
+              "type": "string"
+            },
+            "extensions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "grounding": {
+              "type": "object",
+              "properties": {
+                "sources": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "agentspace": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "agent_type": {
+              "type": "string",
+              "enum": ["conversational", "data-agent", "code-agent"]
+            },
+            "ui": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "List of capabilities this agent provides"
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "JSON Schema for input validation"
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema for output validation"
+    },
+    "guardrails": {
+      "type": "object",
+      "properties": {
+        "input_validation": {
+          "type": "boolean",
+          "default": true
+        },
+        "output_validation": {
+          "type": "boolean",
+          "default": true
+        },
+        "pii_detection": {
+          "type": "boolean",
+          "default": true
+        },
+        "pii_redaction": {
+          "type": "boolean",
+          "default": false
+        },
+        "cost_limit_per_invocation": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rate_limit": {
+          "type": "string",
+          "pattern": "^\\d+/(minute|hour|day)$"
+        }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "properties": {
+        "sla_latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sla_availability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "custom_metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["counter", "gauge", "histogram"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "internal_agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Other agents this agent depends on"
+        },
+        "external_apis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "External APIs required"
+        }
+      }
+    },
+    "orchestration": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["langgraph", "crewai", "google-adk", "custom"]
+        },
+        "framework_version": {
+          "type": "string"
+        },
+        "sub_agents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

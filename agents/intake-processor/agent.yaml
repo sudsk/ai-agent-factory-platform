@@ -1,0 +1,56 @@
+metadata:
+  name: intake-processor
+  version: 1.0.0
+  description: Processes and validates agent intake requests
+  owner: platform-team
+  contact: platform@company.com
+
+deployment:
+  target: cloud-run
+  
+  cloud_run:
+    region: us-central1
+    cpu: 2
+    memory: 4Gi
+    min_instances: 1
+    max_instances: 10
+    timeout: 60s
+    concurrency: 50
+
+capabilities:
+  - intake-processing
+  - data-extraction
+  - request-validation
+
+input_schema:
+  type: object
+  properties:
+    raw_text:
+      type: string
+      description: Raw intake request text
+    business_unit:
+      type: string
+    problem_statement:
+      type: string
+
+output_schema:
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [processed, invalid]
+    structured_request:
+      type: object
+    similar_agents:
+      type: array
+
+guardrails:
+  input_validation: true
+  output_validation: true
+  pii_detection: true
+  pii_redaction: true
+  cost_limit_per_invocation: 0.50
+
+monitoring:
+  sla_latency_ms: 2000
+  sla_availability: 99.5

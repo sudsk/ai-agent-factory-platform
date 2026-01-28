@@ -1,0 +1,166 @@
+name: Deploy Agent
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'agents/**'
+  pull_request:
+    paths:
+      - 'agents/**'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      agents: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            intake-processor:
+              - 'agents/intake-processor/**'
+            prioritization-scorer:
+              - 'agents/prioritization-scorer/**'
+            matchmaking-search:
+              - 'agents/matchmaking-search/**'
+            requirements-refiner:
+              - 'agents/requirements-refiner/**'
+
+  test-and-build:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: ${{ fromJSON(needs.detect-changes.outputs.agents) }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd agents/${{ matrix.agent }}
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      
+      - name: Run tests
+        run: |
+          cd agents/${{ matrix.agent }}
+          pytest tests/ --cov=src --cov-report=xml
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./agents/${{ matrix.agent }}/coverage.xml
+          flags: ${{ matrix.agent }}
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: Build and push container
+        run: |
+          cd agents/${{ matrix.agent }}
+          gcloud builds submit \
+            --tag gcr.io/$PROJECT_ID/${{ matrix.agent }}:${{ github.sha }} \
+            --tag gcr.io/$PROJECT_ID/${{ matrix.agent }}:latest
+  
+  deploy:
+    needs: [detect-changes, test-and-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        agent: ${{ fromJSON(needs.detect-changes.outputs.agents) }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: Deploy to Cloud Run
+        run: |
+          cd agents/${{ matrix.agent }}
+          
+          # Read agent.yaml to get deployment config
+          DEPLOYMENT_TARGET=$(yq eval '.deployment.target' agent.yaml)
+          
+          if [ "$DEPLOYMENT_TARGET" = "cloud-run" ]; then
+            CPU=$(yq eval '.deployment.cloud_run.cpu' agent.yaml)
+            MEMORY=$(yq eval '.deployment.cloud_run.memory' agent.yaml)
+            MIN_INSTANCES=$(yq eval '.deployment.cloud_run.min_instances' agent.yaml)
+            MAX_INSTANCES=$(yq eval '.deployment.cloud_run.max_instances' agent.yaml)
+            
+            gcloud run deploy ${{ matrix.agent }} \
+              --image gcr.io/$PROJECT_ID/${{ matrix.agent }}:${{ github.sha }} \
+              --platform managed \
+              --region $REGION \
+              --cpu $CPU \
+              --memory $MEMORY \
+              --min-instances $MIN_INSTANCES \
+              --max-instances $MAX_INSTANCES \
+              --service-account agent-runtime-sa@$PROJECT_ID.iam.gserviceaccount.com \
+              --set-env-vars GCP_PROJECT=$PROJECT_ID,AGENT_NAME=${{ matrix.agent }}
+          fi
+      
+      - name: Register agent in registry
+        run: |
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe ${{ matrix.agent }} \
+            --platform managed \
+            --region $REGION \
+            --format 'value(status.url)')
+          
+          # Register in Firestore
+          gcloud firestore documents create \
+            --project $PROJECT_ID \
+            --collection agents \
+            --document-id ${{ matrix.agent }} << EOF
+          {
+            "metadata": {
+              "name": "${{ matrix.agent }}",
+              "version": "$(yq eval '.metadata.version' agents/${{ matrix.agent }}/agent.yaml)",
+              "updated_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            },
+            "deployment": {
+              "target": "cloud-run",
+              "region": "$REGION",
+              "endpoint": "$SERVICE_URL"
+            },
+            "status": "active"
+          }
+          EOF
+      
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Agent ${{ matrix.agent }} deployed successfully!
+            Version: ${{ github.sha }}
+            Region: ${{ env.REGION }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
