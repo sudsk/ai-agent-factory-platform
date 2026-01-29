@@ -81,7 +81,6 @@ function App() {
               flexGrow: 1,
               minHeight: '100vh',
               backgroundColor: 'background.default',
-              marginLeft: '240px',
             }}
           >
             <TopBar onMenuClick={handleDrawerToggle} />
