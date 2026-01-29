@@ -8,7 +8,7 @@ function Monitoring() {
       <Typography variant="h4" sx={{ mb: 3 }}>System Monitoring</Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircle sx={{ color: 'success.main' }} />
@@ -20,7 +20,7 @@ function Monitoring() {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6">Active Agents</Typography>
               <Typography variant="h4" sx={{ mt: 2 }}>42</Typography>
@@ -28,7 +28,7 @@ function Monitoring() {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Warning sx={{ color: 'warning.main' }} />

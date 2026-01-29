@@ -81,13 +81,9 @@ function App() {
               flexGrow: 1,
               minHeight: '100vh',
               backgroundColor: 'background.default',
-              transition: theme => theme.transitions.create(['margin', 'width'], {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.leavingScreen,
-              }),
-              ...(sidebarOpen && {
-                marginLeft: '240px',
-              }),
+              width: sidebarOpen ? 'calc(100% - 240px)' : '100%',
+              marginLeft: sidebarOpen ? '240px' : 0,
+              transition: 'all 0.3s ease',
             }}
           >
             <TopBar onMenuClick={handleDrawerToggle} />

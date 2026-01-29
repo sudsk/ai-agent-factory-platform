@@ -18,7 +18,7 @@ import { getAgents, getMetrics } from '../services/api';
 
 function StatCard({ title, value, icon, color, trend }) {
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
@@ -73,15 +73,15 @@ function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch agents
       const agentsResponse = await getAgents();
       const agents = agentsResponse.agents || [];
       const activeAgents = agents.filter(a => a.status === 'active');
-      
+
       // Fetch metrics (mock data for now)
       const metricsResponse = await getMetrics();
-      
+
       setStats({
         totalAgents: agents.length,
         activeAgents: activeAgents.length,
@@ -100,7 +100,7 @@ function Dashboard() {
         { time: '16:00', invocations: 450 },
         { time: '20:00', invocations: 280 },
       ]);
-      
+
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -157,7 +157,7 @@ function Dashboard() {
       <Grid container spacing={3}>
         {/* Invocations Chart */}
         <Grid item xs={12} md={8}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Invocations (Last 24 Hours)
@@ -182,7 +182,7 @@ function Dashboard() {
 
         {/* Recent Agents */}
         <Grid item xs={12} md={4}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Recent Agents
@@ -221,7 +221,7 @@ function Dashboard() {
 
         {/* System Health */}
         <Grid item xs={12}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 System Health
