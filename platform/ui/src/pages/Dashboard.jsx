@@ -1,6 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Grid, Card, CardContent, Typography, Box, Chip } from '@mui/material';
-import { TrendingUp, CheckCircle, Speed } from '@mui/icons-material';
+import React, { useEffect, useState } from 'react';
+import {
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Chip,
+} from '@mui/material';
+import {
+  TrendingUp,
+  CheckCircle,
+  Warning,
+  Speed,
+} from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getAgents, getMetrics } from '../services/api';
 
@@ -25,7 +37,16 @@ function StatCard({ title, value, icon, color, trend }) {
               </Box>
             )}
           </Box>
-          <Box sx={{ backgroundColor: `${color}.light`, borderRadius: 2, p: 1, display: 'flex' }}>
+          <Box
+            sx={{
+              backgroundColor: `${color}.light`,
+              borderRadius: 2,
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             {icon}
           </Box>
         </Box>
@@ -42,14 +63,8 @@ function Dashboard() {
     avgLatency: 0,
   });
   const [recentAgents, setRecentAgents] = useState([]);
-  const [metricsData] = useState([
-    { time: '00:00', invocations: 120 },
-    { time: '04:00', invocations: 150 },
-    { time: '08:00', invocations: 380 },
-    { time: '12:00', invocations: 520 },
-    { time: '16:00', invocations: 450 },
-    { time: '20:00', invocations: 280 },
-  ]);
+  const [metricsData, setMetricsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -57,9 +72,14 @@ function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
+      setLoading(true);
+      
+      // Fetch agents
       const agentsResponse = await getAgents();
       const agents = agentsResponse.agents || [];
       const activeAgents = agents.filter(a => a.status === 'active');
+      
+      // Fetch metrics (mock data for now)
       const metricsResponse = await getMetrics();
       
       setStats({
@@ -68,9 +88,23 @@ function Dashboard() {
         totalInvocations: metricsResponse?.total_invocations || 12547,
         avgLatency: metricsResponse?.avg_latency || 245,
       });
+
       setRecentAgents(agents.slice(0, 5));
+
+      // Mock chart data
+      setMetricsData([
+        { time: '00:00', invocations: 120 },
+        { time: '04:00', invocations: 150 },
+        { time: '08:00', invocations: 380 },
+        { time: '12:00', invocations: 520 },
+        { time: '16:00', invocations: 450 },
+        { time: '20:00', invocations: 280 },
+      ]);
+      
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +114,7 @@ function Dashboard() {
         Dashboard
       </Typography>
 
+      {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
@@ -118,7 +153,9 @@ function Dashboard() {
         </Grid>
       </Grid>
 
+      {/* Charts and Recent Activity */}
       <Grid container spacing={3}>
+        {/* Invocations Chart */}
         <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
@@ -131,13 +168,19 @@ function Dashboard() {
                   <XAxis dataKey="time" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="invocations" stroke="#028090" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="invocations"
+                    stroke="#028090"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
+        {/* Recent Agents */}
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
@@ -172,6 +215,58 @@ function Dashboard() {
                   </Box>
                 ))}
               </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* System Health */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                System Health
+              </Typography>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12} sm={4}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ color: 'success.main' }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Agent Registry
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        Healthy
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ color: 'success.main' }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Firestore
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        Healthy
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Warning sx={{ color: 'warning.main' }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Cloud Monitoring
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        Degraded
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
