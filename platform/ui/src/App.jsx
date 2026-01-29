@@ -73,18 +73,13 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+
         <Box sx={{ display: 'flex' }}>
           <Sidebar open={sidebarOpen} onToggle={handleDrawerToggle} />
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              minHeight: '100vh',
-              backgroundColor: 'background.default',
-            }}
-          >
+
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <TopBar onMenuClick={handleDrawerToggle} />
-            <Box sx={{ p: 3, mt: 8 }}>
+            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8, backgroundColor: 'background.default' }}>
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -98,6 +93,7 @@ function App() {
             </Box>
           </Box>
         </Box>
+
       </Router>
     </ThemeProvider>
   );
