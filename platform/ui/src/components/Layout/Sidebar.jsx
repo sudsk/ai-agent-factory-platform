@@ -15,7 +15,7 @@ import {
   ViewList as ViewListIcon,
   NoteAdd as NoteAddIcon,
   Assignment as AssignmentIcon,
-  Monitoring as MonitoringIcon,
+  MonitorHeart as MonitoringIcon,
   Settings as SettingsIcon,
   SmartToy as SmartToyIcon,
 } from '@mui/icons-material';
